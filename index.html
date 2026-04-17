@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #root {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(5, 100px);
+            grid-template-rows: repeat(5, 100px);
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script type="text/babel">
+
+    const Apple = ({x,y}) => {
+      const style = {
+        width: "40px",
+        height: "40px",
+        position: "center",
+        margin: "40px",
+        gridColumn: x,
+        gridRow: y,
+      };
+      return <img style={style} src="img/apple.png" alt="Apple" />;
+    };
+    
+    const Player = ({x,y}) => {
+      const style = {
+        width: "100px",
+        height: "100px",
+        gridColumn: x,
+        gridRow: y,
+      };
+      return <img style = {style}src ="img/venomsnake.png" alt="Player" />;
+    };
+
+    const Grass = ({x, y}) => {
+      const isEven = (x + y) % 2 === 0;
+      const style = {
+        backgroundColor: isEven ? "#90EE90" : "#2D5016",
+        gridColumn: x,
+        gridRow: y,
+      };
+      return <div style={style}></div>;
+    };
+
+    const RandomApplePosition = () => {
+        const x = Math.floor(Math.random() * 5) + 1;
+        const y = Math.floor(Math.random() * 5) + 1;
+        return {x, y};
+    };
+
+    const gameOver = () => {
+        alert("Game Over!");
+        window.location.reload();
+    };
+
+    const Score = ({score}) => {
+        const style = {
+            position: "align center",
+            top: "100px",
+            left: "100px",
+            fontSize: "20px",
+            fontWeight: "bold",
+        };
+        return <div style={style}>Score: {score}</div>;
+    };
+    
+    const Game = () => {
+        const [playerPosition, setPlayerPosition] = React.useState({x: 3, y: 3});
+        const [applePosition, setApplePosition] = React.useState({x: 2, y: 2});
+        const [score, setScore] = React.useState(0);
+        const [gameOver, setGameOver] = React.useState(false);
+        React.useEffect (() => {
+            if (playerPosition.x === applePosition.x && playerPosition.y === applePosition.y) {
+                setApplePosition(RandomApplePosition());
+                setScore((prev) => prev + 1);
+            }
+        }, [playerPosition, applePosition]);
+
+        React.useEffect(() => {
+            const handleKeyDown = (event) => {
+                if (gameOver) return;
+                
+                let newX = playerPosition.x;
+                let newY = playerPosition.y;
+                
+                switch (event.key) {
+                case "w":
+                    newY = playerPosition.y - 1;
+                    break;
+                case "s":
+                    newY = playerPosition.y + 1;
+                    break;
+                case "a":
+                    newX = playerPosition.x - 1;
+                    break;
+                case "d":
+                    newX = playerPosition.x + 1;
+                    break;
+                default:
+                    return;
+                }
+                
+                if (newX < 1 || newX > 5 || newY < 1 || newY > 5) {
+                    setGameOver(true);
+                    return;
+                }
+                
+                setPlayerPosition({x: newX, y: newY});
+            };
+    
+            window.addEventListener("keydown", handleKeyDown);
+            return () => window.removeEventListener("keydown", handleKeyDown);
+        }, [playerPosition, gameOver]);
+
+      return (
+        <div>
+          <Score score={score} />
+          {gameOver && <div style={{fontSize: "30px", color: "red", marginBottom: "20px"}}>GAME OVER!</div>}
+          <main className = "board">
+            {Array.from({length: 5}).map((_, x) =>
+              Array.from({length: 5}).map((_, y) => (
+                <Grass key={`${x+1}-${y+1}`} x={x+1} y={y+1} />
+              ))
+            )}
+            <Apple x={applePosition.x} y={applePosition.y} />
+            <Player x={playerPosition.x} y={playerPosition.y} />
+          </main>
+          {gameOver && <button onClick={() => {
+            setGameOver(false);
+            setPlayerPosition({x: 3, y: 3});
+            setApplePosition({x: 2, y: 2});
+            setScore(0);
+          }} style={{marginTop: "20px", padding: "10px 20px", fontSize: "16px", cursor: "pointer"}}>Reset Game</button>}
+        </div>
+      );
+    };
+    
+    const App = () => {
+        return (
+        <Game/>
+        );
+     };
+
+    const reactRoot = ReactDOM.createRoot(document.getElementById("root"));
+    reactRoot.render(<App />);
+  </script>
+</body>
+</html>
