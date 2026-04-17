@@ -95,6 +95,7 @@
         const [applePosition, setApplePosition] = React.useState({x: 2, y: 2});
         const [score, setScore] = React.useState(0);
         const [gameOver, setGameOver] = React.useState(false);
+        const [direction, setDirection] = React.useState({x: 1, y: 0});
         React.useEffect (() => {
             if (playerPosition.x === applePosition.x && playerPosition.y === applePosition.y) {
                 setApplePosition(RandomApplePosition());
@@ -104,39 +105,49 @@
 
         React.useEffect(() => {
             const handleKeyDown = (event) => {
-                if (gameOver) return;
-                
-                let newX = playerPosition.x;
-                let newY = playerPosition.y;
-                
                 switch (event.key) {
                 case "w":
-                    newY = playerPosition.y - 1;
+                    setDirection({x: 0, y: -1});
                     break;
                 case "s":
-                    newY = playerPosition.y + 1;
+                    setDirection({x: 0, y: 1});
                     break;
                 case "a":
-                    newX = playerPosition.x - 1;
+                    setDirection({x: -1, y: 0});
                     break;
                 case "d":
-                    newX = playerPosition.x + 1;
+                    setDirection({x: 1, y: 0});
                     break;
                 default:
                     return;
                 }
-                
-                if (newX < 1 || newX > 5 || newY < 1 || newY > 5) {
-                    setGameOver(true);
-                    return;
-                }
-                
-                setPlayerPosition({x: newX, y: newY});
             };
     
-            window.addEventListener("keydown", handleKeyDown);
-            return () => window.removeEventListener("keydown", handleKeyDown);
-        }, [playerPosition, gameOver]);
+            if (!gameOver) {
+                window.addEventListener("keydown", handleKeyDown);
+                return () => window.removeEventListener("keydown", handleKeyDown);
+            }
+        }, [gameOver]);
+
+        React.useEffect(() => {
+            if (gameOver) return;
+            
+            const movePlayer = setInterval(() => {
+                setPlayerPosition((prev) => {
+                    let newX = prev.x + direction.x;
+                    let newY = prev.y + direction.y;
+                    
+                    if (newX < 1 || newX > 5 || newY < 1 || newY > 5) {
+                        setGameOver(true);
+                        return prev;
+                    }
+                    
+                    return {x: newX, y: newY};
+                });
+            }, 300);
+            
+            return () => clearInterval(movePlayer);
+        }, [direction, gameOver]);
 
       return (
         <div>
@@ -156,6 +167,7 @@
             setPlayerPosition({x: 3, y: 3});
             setApplePosition({x: 2, y: 2});
             setScore(0);
+            setDirection({x: 1, y: 0});
           }} style={{marginTop: "20px", padding: "10px 20px", fontSize: "16px", cursor: "pointer"}}>Reset Game</button>}
         </div>
       );
