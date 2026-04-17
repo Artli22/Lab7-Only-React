@@ -58,6 +58,16 @@
       return <img style = {style}src ="img/venomsnake.png" alt="Player" />;
     };
 
+    const Tail =({x,y}) => {
+        const style = {
+            width: "100px",
+            height: "100px",
+            gridColumn: x,
+            gridRow: y,
+        };
+        return <img style={style} src="img/box.png" alt="Tail" />;
+    };
+
     const Grass = ({x, y}) => {
       const isEven = (x + y) % 2 === 0;
       const style = {
@@ -96,6 +106,7 @@
         const [score, setScore] = React.useState(0);
         const [gameOver, setGameOver] = React.useState(false);
         const [direction, setDirection] = React.useState({x: 1, y: 0});
+        const [tailPositions, setTailPositions] = React.useState([]);
         React.useEffect (() => {
             if (playerPosition.x === applePosition.x && playerPosition.y === applePosition.y) {
                 setApplePosition(RandomApplePosition());
@@ -142,12 +153,17 @@
                         return prev;
                     }
                     
+                    setTailPositions((prevTail) => {
+                        const newTail = [{x: prev.x, y: prev.y}, ...prevTail];
+                        return newTail.slice(0, score);
+                    });
+                    
                     return {x: newX, y: newY};
                 });
             }, 300);
             
             return () => clearInterval(movePlayer);
-        }, [direction, gameOver]);
+        }, [direction, gameOver, score]);
 
       return (
         <div>
@@ -160,6 +176,9 @@
               ))
             )}
             <Apple x={applePosition.x} y={applePosition.y} />
+            {tailPositions.map((tail, index) => (
+              <Tail key={`tail-${index}`} x={tail.x} y={tail.y} />
+            ))}
             <Player x={playerPosition.x} y={playerPosition.y} />
           </main>
           {gameOver && <button onClick={() => {
@@ -168,6 +187,7 @@
             setApplePosition({x: 2, y: 2});
             setScore(0);
             setDirection({x: 1, y: 0});
+            setTailPositions([]);
           }} style={{marginTop: "20px", padding: "10px 20px", fontSize: "16px", cursor: "pointer"}}>Reset Game</button>}
         </div>
       );
